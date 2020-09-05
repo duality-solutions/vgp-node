@@ -18,9 +18,7 @@ It is available to install via the Node.js Package Manager (NPM) by using the co
 
 or by cloning from Github and installing locally using NPM:
 
-```$ git clone https://github.com/duality-solutions/vgp-node && git submodule update --init --recursive```
-
-```$ cd vgp-node```
+```$ git clone https://github.com/duality-solutions/node-vgp && cd node-vgp && git submodule update --init --recursive```
 
 ```$ npm install```
 
