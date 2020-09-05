@@ -1,0 +1,3 @@
+[submodule "vgp"]
+	path = vgp
+	url = https://github.com/duality-solutions/VGP.git
