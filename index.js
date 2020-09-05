@@ -1,1 +1,1 @@
-module.exports = require('bindings')('multihashing.node')
+module.exports = require('bindings')('vgp.node')

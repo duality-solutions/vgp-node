@@ -36,22 +36,32 @@ void encrypt(const v8::FunctionCallbackInfo<v8::Value>& args) {
        isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Wrong number of arguments")));
        return;
     }
-
-    Local<Object> vPubKeys = args[0]->ToObject();
-    if(!Buffer::HasInstance(vPubKeys)) {
+    /*
+    Local<Object> objPubKeys = args[0]->ToObject();
+    if(!Buffer::HasInstance(objPubKeys)) {
        isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate,"Argument should be a buffer object.")));
        return;
     }
-    Local<Object> vchData = args[1]->ToObject();
-    unsigned char* input = (unsigned char*)Buffer::Data(target);
+    const std::vector<std::vector<unsigned char>> vPubKeys = (std::vector<std::vector<unsigned char>>)Buffer::Data(objPubKeys);
+
+    Local<Object> objData = args[1]->ToObject();
+    if(!Buffer::HasInstance(objPubKeys)) {
+       isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate,"Argument should be a buffer object.")));
+       return;
+    }
+    const std::vector<unsigned char> vchData = (std::vector<unsigned char>)Buffer::Data(objData);
+    
     std::vector<unsigned char> output;
     std::string strErrorMessage
     if !(EncryptBDAPData(vPubKeys, vchData, output, strErrorMessage)) {
         isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, strErrorMessage)));
         return;
     }
+    */
     // return raw vchCipherText
-    v8::Local<v8::Value> returnValue = Nan::CopyBuffer(std::vector<unsigned char>).ToLocalChecked();
+    unsigned char* output = (unsigned char*) malloc(sizeof(unsigned char) * 32);
+    v8::Local<v8::Value> returnValue = Nan::CopyBuffer(((char*)output), 32).ToLocalChecked();
+    
     args.GetReturnValue().Set(returnValue);
 }
 /**
@@ -76,6 +86,7 @@ void decrypt(const v8::FunctionCallbackInfo<v8::Value>& args) {
        isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Wrong number of arguments")));
        return;
     }
+    /*
     // Get Private Key Seed Argument
     Local<Object> objPrivKeySeed = args[0]->ToObject();
     if(!Buffer::HasInstance(objPrivKeySeed)) {
@@ -97,8 +108,9 @@ void decrypt(const v8::FunctionCallbackInfo<v8::Value>& args) {
         isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, strErrorMessage)));
         return;
     }
-
-    v8::Local<v8::Value> returnValue = Nan::CopyBuffer(std::vector<unsigned char>).ToLocalChecked();
+    */
+    unsigned char* output = (unsigned char*) malloc(sizeof(unsigned char) * 32);
+    v8::Local<v8::Value> returnValue = Nan::CopyBuffer(((char*)output), 32).ToLocalChecked();
     args.GetReturnValue().Set(returnValue);
 }
 

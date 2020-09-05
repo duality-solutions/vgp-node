@@ -19,6 +19,7 @@
 				"vgp/src/shake256.c",
 				"vgp/src/shake256_rand.c",
 				"vgp/src/utils.c",
+				"vgp.cc",
 			],
 			"include_dirs": [
 				"vgp/include",

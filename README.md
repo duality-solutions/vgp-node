@@ -1,4 +1,4 @@
-# **VGP-Node Package**
+# **VGP (Very Good Privacy) NodeJS Package**
 
 ![DYN logo](https://github.com/duality-solutions/Dynamic/blob/master/src/qt/res/icons/drk/about.png)
 
