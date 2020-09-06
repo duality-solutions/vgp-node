@@ -19,14 +19,16 @@
 				"vgp/src/shake256.c",
 				"vgp/src/shake256_rand.c",
 				"vgp/src/utils.c",
-				"vgp.cc",
+				"src/hex.cc",
+				"src/vgp.cc"
 			],
 			"include_dirs": [
 				"vgp/include",
+				"include",
 				"<!(node -e \"require('nan')\")"
 			],
 			"cflags_cc": [
-				"-std=c++0x"
+				"-std=c++11"
 			],
 		}
 	]
