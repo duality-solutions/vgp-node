@@ -12,6 +12,10 @@ A Node.js module for the VGP encryption library.
 Installation Instructions
 -------------------------
 
+### Windows prerequisites for install
+1. Install Python version [3.8.5](https://www.python.org/ftp/python/3.8.5/python-3.8.5.exe) from https://www.python.org. You can install just for your local user account or for all users. Version 2.7 is required for building the Ed25519 native code package. Set the path to python.exe in the PYTHON environment variable.
+1. Install Visual Studio 2019 Build Tools from https://www.visualstudio.com/thank-you-downloading-visual-studio/?sku=BuildTools&rel=16
+
 It is available to install via the Node.js Package Manager (NPM) by using the command:
 
 ```$ npm install vgp```
