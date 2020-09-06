@@ -30,7 +30,7 @@ Linux:
 
 Windows (using [Chocolatey](https://chocolatey.org/install) and [NVM](https://github.com/coreybutler/nvm-windows/releases)):
 
-```$ npm install -; node-gyp rebuild```
+```$ npm install -g node-gyp; npm update; node-gyp clean; node-gyp configure; node-gyp build```
 
 Usage
 -----

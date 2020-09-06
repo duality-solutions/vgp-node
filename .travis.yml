@@ -10,12 +10,17 @@ before_install:
   - command -v nvm
   - sudo apt-get update && sudo apt-get install
   - nvm install lts/dubnium && nvm use lts/dubnium
+  - npm install -g node-gyp
 cache:
   apt: true
 jobs:
   include:
       # Linux
       - stage: build
-        name: 'VGP NodeJS Package'
+        name: 'VGP NodeJS package build'
+        script:
+          - npm update; node-gyp clean; node-gyp configure; node-gyp build
+      - stage: install
+        name: 'VGP NodeJS install'
         script:
           - npm install
