@@ -6,6 +6,8 @@
 #include <hex.h>
 
 #include <stdlib.h>
+#include <string>
+#include <vector>
 
 using namespace node;
 using namespace v8;
@@ -16,37 +18,47 @@ using namespace v8;
  * Buffer message
  * returns: Buffer cipherText
  **/
-NAN_METHOD(Encrypt) {
-    Nan::HandleScope scope;
-
-    v8::Local<v8::Value> bufferObj;
+NAN_METHOD(Encrypt) { 
+    // Check parameter length
     if (info.Length() < 2) {
         return Nan::ThrowError("Encrypt requires at least two parameters");
     }
-    v8::Local<v8::Object> pubkeysObj;
-    if (!info[0]->ToObject(Nan::GetCurrentContext()).ToLocal(&pubkeysObj) || !Buffer::HasInstance(pubkeysObj)) {
-        return Nan::ThrowError("Encrypt first parameter [pubkeys] error");
+    // get public key array parameter
+    std::vector<std::vector<uint8_t>> vvchPubKeys;
+    Local<Value> val;
+    if (info[0]->IsArray()) {
+        Isolate* isolate = info.GetIsolate();
+        Local<Array> jsArray = Local<Array>::Cast(info[0]);
+        for (int i = 0; i < jsArray->Length(); i++) {
+            val = jsArray->Get(Integer::New(isolate, i)); 
+            std::vector<uint8_t> vchPubKey = FromHex(std::string(*String::Utf8Value(isolate, val)));
+            vvchPubKeys.push_back(vchPubKey);
+        }
+    } else {
+        return Nan::ThrowError("Encrypt pubkeys parameters is not an array");
     }
+    // get message string parameter
     v8::Local<v8::Object> messageObj;
     if (!info[1]->ToObject(Nan::GetCurrentContext()).ToLocal(&messageObj) || !Buffer::HasInstance(messageObj)) {
         return Nan::ThrowError("Encrypt second parameter [message] error");
     }
-    std::vector<uint8_t> vchData;
+    // convert message data to uint8_t vector
     const uint8_t* messageData = (uint8_t*)Buffer::Data(messageObj);
     int size = Buffer::Length(messageObj);
     std::vector<uint8_t> vchMessage(messageData, messageData+size);
-    std::vector<std::vector<uint8_t>> vvchPubKeys;
-    std::vector<uint8_t> vchCipherText;
+    // encrypt VGP message data to cipher text
     std::string strErrorMessage = "";
+    std::vector<uint8_t> vchCipherText;
     if (!EncryptBDAPData(vvchPubKeys, vchMessage, vchCipherText, strErrorMessage)) {
         strErrorMessage = "Encrypt error " + strErrorMessage;
         return Nan::ThrowError(strErrorMessage.c_str());
     }
+    // convert cipher text data to output value
     v8::Local<v8::Object> cipherText = Nan::NewBuffer(vchCipherText.size()).ToLocalChecked();
     unsigned char* cipherTextData = (unsigned char*)Buffer::Data(cipherText);
-	for (int i = 0; i < vchCipherText.size(); i++) {
-		cipherTextData[i] = vchCipherText[i];
-	}
+    for (int i = 0; i < vchCipherText.size(); i++) {
+        cipherTextData[i] = vchCipherText[i];
+    }
     info.GetReturnValue().Set(cipherText);
 }
 
@@ -57,7 +69,7 @@ NAN_METHOD(Encrypt) {
  * returns: Buffer clearText
  **/
 NAN_METHOD(Decrypt) {
-    Nan::HandleScope scope;
+    // Check parameter length
     if (info.Length() < 2) {
         return Nan::ThrowError("Decrypt requires at least two parameters");
     }
@@ -73,21 +85,23 @@ NAN_METHOD(Decrypt) {
     if (!info[1]->ToObject(Nan::GetCurrentContext()).ToLocal(&cipherTextObj) || !Buffer::HasInstance(cipherTextObj)) {
         return Nan::ThrowError("Decrypt second parameter [cipher text] error");
     }
-    std::vector<uint8_t> vchData;
+    // convert cipher text to uint8_t vector
+    std::vector<uint8_t> vchClearTextData;
     const uint8_t* cipherTextData = (uint8_t*)Buffer::Data(cipherTextObj);
     int size = Buffer::Length(cipherTextObj);
-    std::vector<uint8_t> vchCipherText(cipherTextData, cipherTextData+size);
+    // decrypt VGP cipher text to clear text
     std::string strErrorMessage = "";
-    if (!DecryptBDAPData(vchPrivKeySeed, vchCipherText, vchData, strErrorMessage)) {
+    std::vector<uint8_t> vchCipherText(cipherTextData, cipherTextData+size);
+    if (!DecryptBDAPData(vchPrivKeySeed, vchCipherText, vchClearTextData, strErrorMessage)) {
         strErrorMessage = "Decrypt error " + strErrorMessage;
         return Nan::ThrowError(strErrorMessage.c_str());
     }
-
-    v8::Local<v8::Object> clearText = Nan::NewBuffer(vchData.size()).ToLocalChecked();
+    // convert clear text data to output value
+    v8::Local<v8::Object> clearText = Nan::NewBuffer(vchClearTextData.size()).ToLocalChecked();
     unsigned char* clearTextData = (unsigned char*)Buffer::Data(clearText);
-	for (int i = 0; i < vchData.size(); i++) {
-		clearTextData[i] = vchData[i];
-	}
+    for (int i = 0; i < vchClearTextData.size(); i++) {
+        clearTextData[i] = vchClearTextData[i];
+    }
     info.GetReturnValue().Set(clearText);
 }
 

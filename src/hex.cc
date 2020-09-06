@@ -286,3 +286,8 @@ std::vector<uint8_t> FromHex(const char* charHex)
     }
     return vch;
 }
+
+std::vector<uint8_t> FromHex(const std::string& strHex)
+{
+    return FromHex(strHex.c_str());
+}

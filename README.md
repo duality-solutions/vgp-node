@@ -39,7 +39,7 @@ Encrypt and decrypt a string using VGP
 var message = 'VGP is easy to use!';
 // VGP encrypt example using multiple hex encoded ed25519 public keys
 var publicKeys = [
-    "1a7af93142337fc2e6696c771414c703f69bf17b273dba9d51993d28576d5cb9", 
+    "1a7af93142337fc2e6696c771414c703f69bf17b273dba9d51993d28576d5cb9",
     "bcd2d75acc94b4cbc440908250e14207ecee4e1e1aa9cc5479dfb07584e38e34"
 ];
 var cipherText = vgp.Encrypt(Buffer.from(publicKeys, 'utf8'), Buffer.from(message, 'utf8'));
