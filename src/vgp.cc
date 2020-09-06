@@ -29,7 +29,7 @@ NAN_METHOD(Encrypt) {
     if (info[0]->IsArray()) {
         Isolate* isolate = info.GetIsolate();
         Local<Array> jsArray = Local<Array>::Cast(info[0]);
-        for (int i = 0; i < jsArray->Length(); i++) {
+        for (unsigned int i = 0; i < jsArray->Length(); i++) {
             val = jsArray->Get(Integer::New(isolate, i)); 
             std::vector<uint8_t> vchPubKey = FromHex(std::string(*String::Utf8Value(isolate, val)));
             vvchPubKeys.push_back(vchPubKey);
@@ -56,7 +56,7 @@ NAN_METHOD(Encrypt) {
     // convert cipher text data to output value
     v8::Local<v8::Object> cipherText = Nan::NewBuffer(vchCipherText.size()).ToLocalChecked();
     unsigned char* cipherTextData = (unsigned char*)Buffer::Data(cipherText);
-    for (int i = 0; i < vchCipherText.size(); i++) {
+    for (unsigned int i = 0; i < vchCipherText.size(); i++) {
         cipherTextData[i] = vchCipherText[i];
     }
     info.GetReturnValue().Set(cipherText);
@@ -99,7 +99,7 @@ NAN_METHOD(Decrypt) {
     // convert clear text data to output value
     v8::Local<v8::Object> clearText = Nan::NewBuffer(vchClearTextData.size()).ToLocalChecked();
     unsigned char* clearTextData = (unsigned char*)Buffer::Data(clearText);
-    for (int i = 0; i < vchClearTextData.size(); i++) {
+    for (unsigned int i = 0; i < vchClearTextData.size(); i++) {
         clearTextData[i] = vchClearTextData[i];
     }
     info.GetReturnValue().Set(clearText);
