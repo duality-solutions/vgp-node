@@ -6,25 +6,16 @@
     node-gyp build --debug
 */
 var vgp = require('./');
-/*
-publicKey: 0a746fba360553d12a18e9253adba6e67df26d9c00464e81cf230b182297b6b4
-privateSeed: 26b10d3da38c12763aeac5f981f436d858b4cc29d7ccf1aa0d01b20eede91591
-*/
-function toHexString(byteArray) {
-    return Array.from(byteArray, function(byte) {
-        return ('0' + (byte & 0xFF).toString(16)).slice(-2);
-    }).join('')
-}
 
 // VGP encrypt example using ed25519 hex encoded pubkey
 var message = 'VGP is easy to use!';
-var publicKey = "0a746fba360553d12a18e9253adba6e67df26d9c00464e81cf230b182297b6b4";
+var publicKey = "8953dff05898b6a0a4830fd66b963ff1d30b39cdce8fe6bd198e9c8b01fa7580";
 var cipherText = vgp.Encrypt(Buffer.from(publicKey, 'hex'), Buffer.from(message, 'utf8'));
-console.log(toHexString(cipherText));
+console.log("original message: " + message + ", cipher text byte size: " + cipherText.byteLength.toString());
 // VGP decrypt example using ed25519 hex encoded private seed
-var privateSeed = "26b10d3da38c12763aeac5f981f436d858b4cc29d7ccf1aa0d01b20eede91591";
-var decryptedMessage = vgp.Decrypt(Buffer.from(privateSeed, 'hex'), Buffer.from(cipherText, 'utf8'));
-console.log(decryptedMessage);
+var privateSeed = "d6beb70350c8bdeb7d628a4ae39acf8d67bb2de08c3f53ab5c380a526cc149c3";
+var decryptedMessage = vgp.Decrypt(Buffer.from(privateSeed, 'hex'), cipherText);
+console.log(decryptedMessage.toString());
 if (message == decryptedMessage) {
     console.log('VGP encrypt/decrypt successful!');
 } else {
