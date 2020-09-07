@@ -2,8 +2,8 @@
 #include <node_buffer.h>
 #include <nan.h>
 
+#include <ed25519.h>
 #include <encryption.h>
-#include <hex.h>
 
 #include <stdlib.h>
 #include <string>
@@ -12,9 +12,19 @@
 using namespace node;
 using namespace v8;
 
+std::string stringFromVch(const std::vector<uint8_t>& vch) {
+    std::string res;
+    std::vector<uint8_t>::const_iterator vi = vch.begin();
+    while (vi != vch.end()) {
+        res += (char) (*vi);
+        vi++;
+    }
+    return res;
+}
+
 /**
  * Encrypt(pubkeys, message)
- * Buffer[] pubkeys
+ * Buffer pubkey
  * Buffer message
  * returns: Buffer cipherText
  **/
@@ -23,20 +33,24 @@ NAN_METHOD(Encrypt) {
     if (info.Length() < 2) {
         return Nan::ThrowError("Encrypt requires at least two parameters");
     }
-    // get public key array parameter
-    std::vector<std::vector<uint8_t>> vvchPubKeys;
-    Local<Value> val;
-    if (info[0]->IsArray()) {
-        Isolate* isolate = info.GetIsolate();
-        Local<Array> jsArray = Local<Array>::Cast(info[0]);
-        for (unsigned int i = 0; i < jsArray->Length(); i++) {
-            val = jsArray->Get(Integer::New(isolate, i)); 
-            std::vector<uint8_t> vchPubKey = FromHex(std::string(*String::Utf8Value(isolate, val)));
-            vvchPubKeys.push_back(vchPubKey);
-        }
-    } else {
-        return Nan::ThrowError("Encrypt pubkeys parameters is not an array");
+    // get ed25519 pubkey parameter
+    v8::Local<v8::Object> pubkeyObj;
+    if (!info[0]->ToObject(Nan::GetCurrentContext()).ToLocal(&pubkeyObj) || !Buffer::HasInstance(pubkeyObj)) {
+        return Nan::ThrowError("Encrypt first parameter pubkey error");
     }
+    // todo: declare public key size constant variable instead of hard coding below.
+    int pubkeySize = Buffer::Length(pubkeyObj);
+    if (pubkeySize != ED25519_PUBLIC_KEY_SIZE) {
+        std::string strErrorMessage = "Encrypt pubkey invalid length = " + std::to_string(pubkeySize) + " error";
+        return Nan::ThrowError(strErrorMessage.c_str());
+    }
+    const uint8_t* pubkeyData = (uint8_t*)Buffer::Data(pubkeyObj);
+    const std::vector<uint8_t> vchPubKey(pubkeyData, pubkeyData+pubkeySize);
+    if (vchPubKey.size() != ED25519_PUBLIC_KEY_SIZE) {
+        std::string strErrorMessage = "Encrypt pubkey vector invalid length = " + std::to_string(vchPubKey.size()) + " error";
+        return Nan::ThrowError(strErrorMessage.c_str());
+    }
+    const std::vector<std::vector<uint8_t>> vvchPubKeys = {vchPubKey};
     // get message string parameter
     v8::Local<v8::Object> messageObj;
     if (!info[1]->ToObject(Nan::GetCurrentContext()).ToLocal(&messageObj) || !Buffer::HasInstance(messageObj)) {
@@ -44,8 +58,8 @@ NAN_METHOD(Encrypt) {
     }
     // convert message data to uint8_t vector
     const uint8_t* messageData = (uint8_t*)Buffer::Data(messageObj);
-    int size = Buffer::Length(messageObj);
-    std::vector<uint8_t> vchMessage(messageData, messageData+size);
+    const int messageSize = Buffer::Length(messageObj);
+    const std::vector<uint8_t> vchMessage(messageData, messageData+messageSize);
     // encrypt VGP message data to cipher text
     std::string strErrorMessage = "";
     std::vector<uint8_t> vchCipherText;
@@ -64,7 +78,7 @@ NAN_METHOD(Encrypt) {
 
  /**
  * Decrypt(privatekey, cipherText)
- * Buffer privatekey (hex)
+ * Buffer privatekey
  * Buffer cipherText
  * returns: Buffer clearText
  **/
@@ -78,20 +92,29 @@ NAN_METHOD(Decrypt) {
     if (!info[0]->ToObject(Nan::GetCurrentContext()).ToLocal(&privateKeyObj) || !Buffer::HasInstance(privateKeyObj)) {
         return Nan::ThrowError("Decrypt first parameter [privatekey] error");
     }
-    const char* hexPrivKey = (char*)Buffer::Data(privateKeyObj);
-    std::vector<uint8_t> vchPrivKeySeed = FromHex(hexPrivKey);
+    int privkeySize = Buffer::Length(privateKeyObj);
+    if (privkeySize != ED25519_PRIVATE_KEY_SEED_SIZE) {
+        std::string strErrorMessage = "Encrypt private key seed invalid length = " + std::to_string(privkeySize) + " error";
+        return Nan::ThrowError(strErrorMessage.c_str());
+    }
+    const char* privKey = (char*)Buffer::Data(privateKeyObj);
+    const std::vector<uint8_t> vchPrivKeySeed(privKey, privKey+privkeySize);
+    if (vchPrivKeySeed.size() != ED25519_PRIVATE_KEY_SEED_SIZE) {
+        std::string strErrorMessage = "Decrypt private key seed vector invalid length = " + std::to_string(vchPrivKeySeed.size()) + " error";
+        return Nan::ThrowError(strErrorMessage.c_str());
+    }
     // get cipher text parameter
     v8::Local<v8::Object> cipherTextObj;
     if (!info[1]->ToObject(Nan::GetCurrentContext()).ToLocal(&cipherTextObj) || !Buffer::HasInstance(cipherTextObj)) {
         return Nan::ThrowError("Decrypt second parameter [cipher text] error");
     }
     // convert cipher text to uint8_t vector
-    std::vector<uint8_t> vchClearTextData;
     const uint8_t* cipherTextData = (uint8_t*)Buffer::Data(cipherTextObj);
-    int size = Buffer::Length(cipherTextObj);
+    const int size = Buffer::Length(cipherTextObj);
+    const std::vector<uint8_t> vchCipherText(cipherTextData, cipherTextData+size);
     // decrypt VGP cipher text to clear text
+    std::vector<uint8_t> vchClearTextData;
     std::string strErrorMessage = "";
-    std::vector<uint8_t> vchCipherText(cipherTextData, cipherTextData+size);
     if (!DecryptBDAPData(vchPrivKeySeed, vchCipherText, vchClearTextData, strErrorMessage)) {
         strErrorMessage = "Decrypt error " + strErrorMessage;
         return Nan::ThrowError(strErrorMessage.c_str());
