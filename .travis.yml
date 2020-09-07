@@ -17,10 +17,12 @@ jobs:
   include:
       # Linux
       - stage: build
-        name: 'VGP NodeJS package build'
+        name: 'Test VGP NodeJS package build'
         script:
           - npm update; node-gyp clean; node-gyp configure; node-gyp build
+          - node test.js
       - stage: install
-        name: 'VGP NodeJS install'
+        name: 'Test VGP NodeJS install'
         script:
           - npm install
+          - node test.js
