@@ -13,8 +13,11 @@ Installation Instructions
 -------------------------
 
 ### Windows prerequisites for install
-1. Install Python version [3.8.5](https://www.python.org/ftp/python/3.8.5/python-3.8.5.exe) from https://www.python.org. You can install just for your local user account or for all users. Version 3.8.5 is required for building the VGP native code package. Set the path to python.exe in the PYTHON environment variable.
+1. Install Python version [2.7.18](https://www.python.org/downloads/release/python-2718/) from https://www.python.org. You can install just for your local user account or for all users. Version 2.7.x is required for building the VGP native code package. Set the path to python.exe in the PYTHON environment variable.
 1. Install Visual Studio 2019 Build Tools from https://www.visualstudio.com/thank-you-downloading-visual-studio/?sku=BuildTools&rel=16
+
+```$ npm install --python=python2.7``` 
+```$ npm install --global --production windows-build-tools``` 
 
 It is available to install via the Node.js Package Manager (NPM) by using the command:
 
